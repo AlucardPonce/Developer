@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from "react";
-import validator from "validator";
 
-function Formulario() {
+function LoginForm() {
   const [formData, setFormData] = useState({
     username: "",
-    email: "",
     password: "",
-    birthDate: "",
-    fullName: "",
   });
 
   const [errors, setErrors] = useState({
     username: false,
-    email: false,
     password: false,
-    birthDate: false,
-    fullName: false,
   });
 
   const [isValid, setIsValid] = useState(false);
@@ -31,16 +24,7 @@ function Formulario() {
       case "username":
         isFieldValid = value.trim().length > 0;
         break;
-      case "email":
-        isFieldValid = validator.isEmail(value);
-        break;
       case "password":
-        isFieldValid = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(value); // Al menos una letra y un número
-        break;
-      case "birthDate":
-        isFieldValid = validator.isDate(value);
-        break;
-      case "fullName":
         isFieldValid = value.trim().length > 0;
         break;
       default:
@@ -64,27 +48,21 @@ function Formulario() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/register", {
-        method: "POST",
+      const response = await fetch("http://localhost:3000/validate", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "username": formData.username,
+          "password": formData.password,
         },
-        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setServerResponse("Usuario registrado exitosamente!");
-        setFormData({
-          username: "",
-          email: "",
-          password: "",
-          birthDate: "",
-          fullName: "",
-        });
+        setServerResponse("Autenticación exitosa!");
       } else {
-        setServerResponse(data.intMessage || "Error en el registro");
+        setServerResponse(data.intMessage || "Credenciales incorrectas");
       }
     } catch (err) {
       setServerResponse("Error al conectar con el servidor");
@@ -93,65 +71,35 @@ function Formulario() {
 
   return (
     <div style={styles.container}>
-      <h1>Registro</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
-        {/* Campos del formulario */}
-        <label style={styles.label}>Usuario:
+        {/* Campos de login */}
+        <label style={styles.label}>
+          Usuario:
           <input
             type="text"
             name="username"
             value={formData.username}
             onChange={handleChange}
             style={styles.input(errors.username)}
+            placeholder="Ingresa tu usuario"
           />
           {errors.username && <span style={styles.errorText}>Este campo es obligatorio</span>}
         </label>
 
-        <label style={styles.label}>Correo:
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            style={styles.input(errors.email)}
-          />
-          {errors.email && <span style={styles.errorText}>Correo no válido</span>}
-        </label>
-
-        <label style={styles.label}>Contraseña:
+        <label style={styles.label}>
+          Contraseña:
           <input
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
             style={styles.input(errors.password)}
+            placeholder="Ingresa tu contraseña"
           />
-          {errors.password && <span style={styles.errorText}>La contraseña debe tener al menos 6 caracteres, una letra y un número</span>}
+          {errors.password && <span style={styles.errorText}>Este campo es obligatorio</span>}
         </label>
 
-        <label style={styles.label}>Fecha de nacimiento:
-          <input
-            type="date"
-            name="birthDate"
-            value={formData.birthDate}
-            onChange={handleChange}
-            style={styles.input(errors.birthDate)}
-          />
-          {errors.birthDate && <span style={styles.errorText}>Fecha no válida</span>}
-        </label>
-
-        <label style={styles.label}>Nombre completo:
-          <input
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            style={styles.input(errors.fullName)}
-          />
-          {errors.fullName && <span style={styles.errorText}>Este campo es obligatorio</span>}
-        </label>
-
-        <button type="submit" disabled={!isValid} style={isValid ? styles.submitButton : styles.submitButtonDisabled}>Enviar</button>
+        <button type="submit" disabled={!isValid} style={styles.submitButton}>Iniciar sesión</button>
       </form>
 
       {serverResponse && <p style={styles.serverResponse}>{serverResponse}</p>}
@@ -161,23 +109,21 @@ function Formulario() {
 
 const styles = {
   container: {
-    maxWidth: "500px",
+    maxWidth: "400px",
     margin: "0 auto",
-    padding: "30px",
-    backgroundColor: "#fff",
-    borderRadius: "8px",
+    padding: "40px",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "10px",
     boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-    textAlign: "center",
   },
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: "15px",
+    gap: "20px",
   },
   label: {
     fontSize: "16px",
-    textAlign: "left",
-    fontWeight: "500",
+    fontWeight: "bold",
   },
   input: (isError) => ({
     padding: "12px",
@@ -185,14 +131,9 @@ const styles = {
     borderRadius: "8px",
     border: `1px solid ${isError ? "red" : "#ccc"}`,
     outline: "none",
-    marginTop: "8px",
     transition: "border 0.3s ease-in-out",
+    marginTop: "8px",
   }),
-  errorText: {
-    color: "red",
-    fontSize: "12px",
-    marginTop: "5px",
-  },
   submitButton: {
     padding: "12px 20px",
     fontSize: "16px",
@@ -207,11 +148,16 @@ const styles = {
     backgroundColor: "#ccc",
     cursor: "not-allowed",
   },
+  errorText: {
+    color: "red",
+    fontSize: "12px",
+    marginTop: "5px",
+  },
   serverResponse: {
     marginTop: "20px",
-    fontSize: "16px",
-    color: "#333",
+    textAlign: "center",
+    fontSize: "18px",
   },
 };
 
-export default Formulario;
+export default LoginForm;
